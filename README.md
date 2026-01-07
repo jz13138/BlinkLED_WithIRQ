@@ -1,20 +1,15 @@
-# BlinkLED_WithIRQ Example
+# BlinkLED_WithIRQ
 
-This example demonstrates how to blink an LED without using a timing loop delay, allowing the MCU to do other things while waiting to turn the LED on or off again.
+This example demonstrates 
+- How to read the internal ADC
+- How to show the state of charge by Blink an LED without using a timing loop delay, allowing the MCU to do other things while waiting to turn the LED on or off again.
+- How to implement a simple state machine
 
-This example also demonstrates one way to implement a `millis()` function (similar to what Arduino provides).
-The source code for the `millis()` code can be found in the [millis.h](../include/millis.h) include file.
-
-There are certainly leaner ways of using a timer to blink an LED than the `millis()` technique.
-For example, eliminating or using smaller than the 32-bit variables, could reduce the code / RAM requirements potentially significantly.
-Simply using 16-bit instead of 32-bit variables reduces the code from 169 -> 122 words, and the ram requirements from 21 -> 7 bytes, although it means the millis counter will roll-over about every minute instead of every 49 days.
-
-See the [BlinkLED](../BlinkLED) example for a simpler timing loop based approach. 
 
 > _**Inspiration**: This example was inspired by the public domain [BlinkWithoutDelay](https://www.arduino.cc/en/Tutorial/BlinkWithoutDelay) example from Arduino._
 
 ### Hardware Circuit
-By default, the LED is placed on the PA4 pin* (Port A, Bit 4) with a current sink configuration.
+By default, the LED is placed on the PA6 pin* (Port A, Bit 6) with a current sink configuration.
 
 This means the negative leg (or cathode) of the LED is connected to the digital pin of the IC, and the positive leg (or anode) of the LED is connected through a current limiting resistor to VDD.
 - When the digital pin is LOW, current will flow through the LED and it will light up.
@@ -23,7 +18,7 @@ This means the negative leg (or cathode) of the LED is connected to the digital 
 >_*Note: Please consult the pinout for the specific microcontroller package used to identify the correct physical pin._
 
 ### Internal Peripherals Used:
-- **16-bit timer (T16)**: Timer and timer interrupt used by `millis()` for timekeeping.  
+- **16-bit timer (T16)**: Timer and timer interrupt used by `time_keeper_has_timed_out()` for timekeeping.  
 
 ### Toolchain:
 - The open-source [Small Device C Compiler (SDCC)](http://sdcc.sourceforge.net/)
@@ -48,21 +43,21 @@ make run
 
 ### Customization:
 Edit the variables at the top of the Makefile to:
-- **DEVICE**: Use a different Padauk MCU (defaults to PFS154)
-- **F_CPU**: Use a different frequency for the system clock (defaults to 1MHz, i.e. IHRC/16)
+- **DEVICE**: Use a different Padauk MCU (defaults to PFS173)
+- **F_CPU**: Use a different frequency for the system clock (defaults to 8MHz, i.e. IHRC/16)
   > Note: The `AUTO_INIT_SYSCLOCK()` macro in the `STARTUP_FUNCTION()` method will automatically choose the correct internal oscillator (IHRC or ILRC) and clock divider based on the desired frequency.
   > The `AUTO_CALIBRATE_SYSCLOCK(vdd)` macro will install a placeholder for the correct internal oscillator (IHRC or ILRC) that the Easy PDK Programmer will use to calibrate to the desired frequency.
 - **TARGET_VDD_MV**: Use a different voltage while calibrating the internal oscillator (IHRC or ILRC) (defaults to 4000mV)
 - **TARGET_VDD**: Use a different voltage while the IC is operating (defaults to 4.0V)
 
-> Note: All of these variables can be changed on the commandline as well.  i.e. `make DEVICE=PFS173 clean program run` 
+> Note: All of these variables can be changed on the command line as well.  i.e. `make DEVICE=PFS173 clean program run` 
 
 ### Compatibility
 This example should run on every currently known Padauk microcontroller that is supported by SDCC and the Easy PDK Programmer.
 A device specific include file (pdk/device/*.h) may need to be supplied for less common devices.
 
 ### Build Stats
-- Code Size: 169 words (338 bytes)
-- RAM usage: 21 bytes + stack
-  - Most of the 21 bytes are used by the `millis()` routines and variables (defined in the [millis.h](../include/millis.h) include file),
+- Code Size: 380 words (760 bytes)
+- RAM usage: 34 bytes + stack
+  - Most of the 21 bytes are used by the `millis()` routines and variables (defined in the [time_keeper.h](../include/time_keeper.h) include file),
    as well as the millis related comparison/math found in `main()`.  Using smaller data types, or more efficient techniques, would help out if running into resource limits.
